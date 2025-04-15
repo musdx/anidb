@@ -1,7 +1,4 @@
-use reqwest::{
-    self, Error,
-    blocking::{Client, Response},
-};
+use reqwest::blocking::{Client, Response};
 use scraper;
 
 fn main() {
@@ -12,4 +9,23 @@ fn main() {
         .send()
         .unwrap();
     let html: String = res.text().unwrap();
+
+    let doc = scraper::Html::parse_document(&html);
+
+    let anime_selector = &scraper::Selector::parse("a.name-colored").unwrap();
+
+    let anime_titles: Vec<String> = doc
+        .select(&anime_selector)
+        .map(|anime| anime.text().collect::<String>())
+        .collect();
+
+    let mut anime_links: Vec<String> = Vec::new();
+
+    for link in doc.select(&anime_selector) {
+        anime_links.push(String::from("https://anidb.net") + link.value().attr("href").unwrap());
+    }
+
+    for (title, link) in anime_titles.iter().zip(anime_links.iter()) {
+        println!("Title: {}\nLinks {}\n", title, link)
+    }
 }
