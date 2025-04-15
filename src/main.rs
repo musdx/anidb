@@ -13,19 +13,17 @@ fn main() {
     let doc = scraper::Html::parse_document(&html);
 
     let anime_selector = &scraper::Selector::parse("a.name-colored").unwrap();
-
+    let mut anime_links: Vec<String> = Vec::new();
     let anime_titles: Vec<String> = doc
         .select(&anime_selector)
         .map(|anime| anime.text().collect::<String>())
         .collect();
-
-    let mut anime_links: Vec<String> = Vec::new();
 
     for link in doc.select(&anime_selector) {
         anime_links.push(String::from("https://anidb.net") + link.value().attr("href").unwrap());
     }
 
     for (title, link) in anime_titles.iter().zip(anime_links.iter()) {
-        println!("Title: {}\nLinks {}\n", title, link)
+        println!("Title: {}\nLinks: {}\n", title, link)
     }
 }
