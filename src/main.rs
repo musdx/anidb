@@ -2,6 +2,27 @@ use reqwest::blocking::{Client, Response};
 use scraper;
 use std::time::{SystemTime, UNIX_EPOCH};
 
+// Color thing
+const _BLACK: &str = "\x1b[30m";
+const _RED: &str = "\x1b[31m";
+const _GREEN: &str = "\x1b[32m";
+const _YELLOW: &str = "\x1b[33m";
+const _BLUE: &str = "\x1b[34m";
+const _MAGENTA: &str = "\x1b[35m";
+const _CYAN: &str = "\x1b[36m";
+const _WHITE: &str = "\x1b[37m";
+const _BRIGHT_BLACK: &str = "\x1b[30;1m";
+const _BRIGHT_RED: &str = "\x1b[31;1m";
+const _BRIGHT_GREEN: &str = "\x1b[32;1m";
+const _BRIGHT_YELLOW: &str = "\x1b[33;1m";
+const _BRIGHT_BLUE: &str = "\x1b[34;1m";
+const _BRIGHT_MAGENTA: &str = "\x1b[35;1m";
+const _BRIGHT_CYAN: &str = "\x1b[36;1m";
+const _BRIGHT_WHITE: &str = "\x1b[37;1m";
+// Effect thing
+const _BOLD: &str = "\x1b[1m";
+const _RESET: &str = "\x1b[0m";
+
 fn main() {
     let now = SystemTime::now();
     let since_the_epoch = now.duration_since(UNIX_EPOCH).expect("Time went backwards");
@@ -30,29 +51,29 @@ fn main() {
                         );
                         break;
                     } else {
-                        println!("\nYears to big\n");
+                        println!("{}\nYears to big\n{}", _RED, _RESET);
                         mon = String::new();
                         year = String::new();
                     }
                 } else {
-                    println!("\nIncorect input months\n");
+                    println!("{}\nIncorect input months\n{}", _RED, _RESET);
                     mon = String::new();
                     year = String::new();
                 }
             } else {
-                println!("\nMonths too big\n");
+                println!("{}\nMonths too big\n{}", _RED, _RESET);
                 mon = String::new();
                 year = String::new();
             }
         } else {
-            println!("\nIncorect input months\n");
+            println!("{}\nIncorect input months\n{}", _RED, _RESET);
             mon = String::new();
             year = String::new();
         }
     }
 
     println!(
-        "\nThe date you choosed is: {} / {}\n",
+        "{_GREEN}\nThe date you choosed is: {} / {}\n{_RESET}",
         mon.trim(),
         year.trim()
     );
@@ -79,6 +100,8 @@ fn main() {
     }
 
     for (title, link) in anime_titles.iter().zip(anime_links.iter()) {
-        println!("Title: {}\nLinks: {}\n", title, link)
+        println!(
+            "{_BOLD}Title:{_RESET} {_CYAN}{title}{_RESET}\n{_BOLD}Links:{_RESET} {_BRIGHT_YELLOW}{link}{_RESET}\n"
+        )
     }
 }
