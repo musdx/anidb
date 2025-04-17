@@ -88,8 +88,15 @@ fn main() {
 
     let doc = scraper::Html::parse_document(&html);
 
-    let anime_selector = &scraper::Selector::parse("a.name-colored").unwrap();
+    let anime_selector = scraper::Selector::parse("a.name-colored").unwrap();
+    let rating_selector = scraper::Selector::parse("div.votes.rating").unwrap();
     let mut anime_links: Vec<String> = Vec::new();
+
+    let anime_rating: Vec<String> = doc
+        .select(&rating_selector)
+        .map(|rating| rating.text().collect::<String>())
+        .collect();
+
     let anime_titles: Vec<String> = doc
         .select(&anime_selector)
         .map(|anime| anime.text().collect::<String>())
@@ -99,9 +106,14 @@ fn main() {
         anime_links.push(String::from("https://anidb.net") + link.value().attr("href").unwrap());
     }
 
-    for (title, link) in anime_titles.iter().zip(anime_links.iter()) {
+    for (title, link, rating) in anime_titles
+        .iter()
+        .zip(anime_links.iter())
+        .zip(anime_rating.iter())
+        .map(|((title, link), rating)| (title, link, rating))
+    {
         println!(
-            "{_BOLD}Title:{_RESET} {_CYAN}{title}{_RESET}\n{_BOLD}Links:{_RESET} {_BRIGHT_YELLOW}{link}{_RESET}\n"
+            "{_BOLD}Title:{_RESET} {_CYAN}{title}{_RESET}\n{_BOLD}Links:{_RESET} {_BRIGHT_YELLOW}{link}{_RESET}\n{rating}\n",
         )
     }
 }
