@@ -30,20 +30,32 @@ fn main() {
                         );
                         break;
                     } else {
-                        println!("\nYears to big\n")
+                        println!("\nYears to big\n");
+                        mon = String::new();
+                        year = String::new();
                     }
                 } else {
-                    println!("\nIncorect input months\n")
+                    println!("\nIncorect input months\n");
+                    mon = String::new();
+                    year = String::new();
                 }
             } else {
-                println!("\nMonths too big\n")
+                println!("\nMonths too big\n");
+                mon = String::new();
+                year = String::new();
             }
         } else {
-            println!("\nIncorect input months\n")
+            println!("\nIncorect input months\n");
+            mon = String::new();
+            year = String::new();
         }
     }
 
-    println!("The date you choosed is: {mon}/{year}");
+    println!(
+        "\nThe date you choosed is: {} / {}\n",
+        mon.trim(),
+        year.trim()
+    );
 
     let client: Client = Client::new();
     let res: Response = client
