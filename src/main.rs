@@ -90,12 +90,35 @@ fn main() {
 
     let anime_selector = scraper::Selector::parse("a.name-colored").unwrap();
     let rating_selector = scraper::Selector::parse("div.votes.rating").unwrap();
-    let mut anime_links: Vec<String> = Vec::new();
+    let div_tag = scraper::Selector::parse("div.tags").unwrap();
+    let tags = scraper::Selector::parse("span.tagname").unwrap();
+    let data_div = scraper::Selector::parse("div.data").unwrap();
 
-    let anime_rating: Vec<String> = doc
-        .select(&rating_selector)
-        .map(|rating| rating.text().collect::<String>())
-        .collect();
+    let mut anime_links: Vec<String> = Vec::new();
+    let mut anime_tags: Vec<Vec<String>> = Vec::new();
+
+    let mut anime_rating: Vec<String> = Vec::new();
+
+    for anime in doc.select(&data_div) {
+        let mut in_tags: Vec<String> = vec![String::from("None")];
+        for div in anime.select(&div_tag) {
+            in_tags = div
+                .select(&tags)
+                .map(|x| x.text().collect::<String>())
+                .collect();
+        }
+        anime_tags.push(in_tags);
+        let ratings: Vec<String> = anime
+            .select(&rating_selector)
+            .map(|r| r.text().collect::<String>().trim().to_string())
+            .filter(|s| !s.is_empty())
+            .collect();
+        if ratings.is_empty() {
+            anime_rating.push("Rating: None".to_string());
+        } else {
+            anime_rating.push(ratings[0].clone());
+        }
+    }
 
     let anime_titles: Vec<String> = doc
         .select(&anime_selector)
@@ -106,14 +129,15 @@ fn main() {
         anime_links.push(String::from("https://anidb.net") + link.value().attr("href").unwrap());
     }
 
-    for (title, link, rating) in anime_titles
-        .iter()
-        .zip(anime_links.iter())
-        .zip(anime_rating.iter())
-        .map(|((title, link), rating)| (title, link, rating))
-    {
+    let anime_count = anime_titles.len();
+
+    for i in 0..anime_count {
         println!(
-            "{_BOLD}Title:{_RESET} {_CYAN}{title}{_RESET}\n{_BOLD}Links:{_RESET} {_BRIGHT_YELLOW}{link}{_RESET}\n{rating}\n",
+            "{_BOLD}Title:{_RESET} {_CYAN}{}{_RESET}\n{_BOLD}Links:{_RESET} {_BRIGHT_YELLOW}{}{_RESET}\n{}\n{_BOLD}Genre:{_RESET} {:?}\n",
+            anime_titles[i].trim(),
+            anime_links[i].trim(),
+            anime_rating[i].trim(),
+            anime_tags[i]
         )
     }
 }
