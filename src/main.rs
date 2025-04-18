@@ -1,5 +1,6 @@
 use reqwest::blocking::{Client, Response};
 use scraper;
+use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 // Color thing
@@ -23,6 +24,15 @@ const _BRIGHT_WHITE: &str = "\x1b[37;1m";
 const _BOLD: &str = "\x1b[1m";
 const _RESET: &str = "\x1b[0m";
 
+fn display_image(image_path: &str) -> std::io::Result<()> {
+    let status = Command::new("kitty").arg("icat").arg(image_path).status()?;
+
+    if !status.success() {
+        eprintln!("Error: Command exited with status: {:?}", status.code());
+    }
+    Ok(())
+}
+
 fn main() {
     let now = SystemTime::now();
     let since_the_epoch = now.duration_since(UNIX_EPOCH).expect("Time went backwards");
@@ -31,7 +41,7 @@ fn main() {
 
     let mut mon: String = String::new();
     let mut year: String = String::new();
-    let mut web_link = String::new();
+    let mut _web_link = String::new();
 
     loop {
         println!("Type the Month that you want to check (in number): ");
@@ -44,7 +54,7 @@ fn main() {
             if month >= 1 && month < 13 {
                 if let Ok(years) = year.trim().parse::<u64>() {
                     if years <= current_year {
-                        web_link = format!(
+                        _web_link = format!(
                             "https://anidb.net/anime/season/{}/{}/?do=calendar&h=1&view=smallgrid",
                             year.trim(),
                             mon.trim()
@@ -80,7 +90,7 @@ fn main() {
 
     let client: Client = Client::new();
     let res: Response = client
-        .get(web_link)
+        .get(_web_link)
         .header(reqwest::header::USER_AGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36")
         .send()
         .unwrap();
@@ -93,10 +103,11 @@ fn main() {
     let div_tag = scraper::Selector::parse("div.tags").unwrap();
     let tags = scraper::Selector::parse("span.tagname").unwrap();
     let data_div = scraper::Selector::parse("div.data").unwrap();
+    let img_selector = scraper::Selector::parse("img.g_image.g_bubble.small").unwrap();
 
+    let mut anime_image: Vec<&str> = Vec::new();
     let mut anime_links: Vec<String> = Vec::new();
     let mut anime_tags: Vec<Vec<String>> = Vec::new();
-
     let mut anime_rating: Vec<String> = Vec::new();
 
     for anime in doc.select(&data_div) {
@@ -129,9 +140,16 @@ fn main() {
         anime_links.push(String::from("https://anidb.net") + link.value().attr("href").unwrap());
     }
 
+    for image in doc.select(&img_selector) {
+        anime_image.push(image.value().attr("src").unwrap());
+    }
+
     let anime_count = anime_titles.len();
 
     for i in 0..anime_count {
+        if let Err(e) = display_image(anime_image[i]) {
+            eprintln!("Failed to display image: {}", e);
+        }
         println!(
             "{_BOLD}Title:{_RESET} {_CYAN}{}{_RESET}\n{_BOLD}Links:{_RESET} {_BRIGHT_YELLOW}{}{_RESET}\n{}\n{_BOLD}Genre:{_RESET} {:?}\n",
             anime_titles[i].trim(),
